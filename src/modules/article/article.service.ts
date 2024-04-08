@@ -45,30 +45,35 @@ export class ArticleService implements OnModuleInit {
       ARTICLE_PATH,
     )
     console.log('articlePath', articlePath)
+    if (articlePath) {
     // 监听的文件夹路径
-    const pathToWatch = 'E:/project/vue/vue3-antdv-admin/docs'
-    // 在主线程中启动chokidar监听
-    // watch(pathToWatch).on('all', (event, path) => {
-    //   // console.log('event', event, 'path:', path)
-    //   Logger.debug('event', event, 'path:', path)
-    // })
+      const pathToWatch = 'E:/project/vue/vue3-antdv-admin/docs'
+      // 在主线程中启动chokidar监听
+      // watch(pathToWatch).on('all', (event, path) => {
+      //   // console.log('event', event, 'path:', path)
+      //   Logger.debug('event', event, 'path:', path)
+      // })
 
-    const watcher = watch(pathToWatch, {
-      persistent: true,
+      const watcher = watch(pathToWatch, {
+        persistent: true,
       // ignoreInitial: true
-    })
-    watcher
-      .on('add', async (path) => {
-        console.log(`File ${path} was added`)
-        await this.writeArticleFileInfoToDataBase(pathToWatch)
       })
-      .on('change', async (path) => {
-        console.log(`File ${path} was changed`)
-        await this.writeArticleFileInfoToDataBase(pathToWatch)
-      })
-      .on('unlink', path => console.log(`File ${path} was removed`))
-      .on('error', error => console.error(`Watcher error: ${error}`))
+      watcher
+        .on('add', async (path) => {
+          console.log(`File ${path} was added`)
+          await this.writeArticleFileInfoToDataBase(pathToWatch)
+        })
+        .on('change', async (path) => {
+          console.log(`File ${path} was changed`)
+          await this.writeArticleFileInfoToDataBase(pathToWatch)
+        })
+        .on('unlink', path => console.log(`File ${path} was removed`))
+        .on('error', error => console.error(`Watcher error: ${error}`))
       // .on('ready', () => console.log('Initial scan complete. Ready for changes.'))
+    }
+    else {
+      Logger.error('articlePath没有配置')
+    }
   }
 
   constructor(

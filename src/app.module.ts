@@ -13,6 +13,7 @@ import { AllExceptionsFilter } from './common/filters/any-exception.filter'
 import { IdempotenceInterceptor } from './common/interceptors/idempotence.interceptor'
 import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor'
 import { TransformInterceptor } from './common/interceptors/transform.interceptor'
+import { ArticleModule } from './modules/article/article.module'
 import { AuthModule } from './modules/auth/auth.module'
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard'
 import { RbacGuard } from './modules/auth/guards/rbac.guard'
@@ -63,6 +64,7 @@ import { SocketModule } from './socket/socket.module'
     // end biz
 
     TodoModule,
+    ArticleModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
