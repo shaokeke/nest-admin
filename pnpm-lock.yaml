@@ -92,6 +92,9 @@ dependencies:
   cache-manager-ioredis-yet:
     specifier: ^2.0.2
     version: 2.0.2
+  chokidar:
+    specifier: ^3.6.0
+    version: 3.6.0
   class-transformer:
     specifier: ^0.5.1
     version: 0.5.1
@@ -195,7 +198,7 @@ devDependencies:
     version: 10.3.2
   '@nestjs/schematics':
     specifier: ^10.1.1
-    version: 10.1.1(typescript@5.4.3)
+    version: 10.1.1(chokidar@3.6.0)(typescript@5.4.3)
   '@nestjs/testing':
     specifier: ^10.3.5
     version: 10.3.5(@nestjs/common@10.3.7)(@nestjs/core@10.3.7)
@@ -2658,7 +2661,7 @@ packages:
       - chokidar
     dev: true
 
-  /@nestjs/schematics@10.1.1(typescript@5.4.3):
+  /@nestjs/schematics@10.1.1(chokidar@3.6.0)(typescript@5.4.3):
     resolution: {integrity: sha512-o4lfCnEeIkfJhGBbLZxTuVWcGuqDCFwg5OrvpgRUBM7vI/vONvKKiB5riVNpO+JqXoH0I42NNeDb0m4V5RREig==}
     peerDependencies:
       typescript: '>=4.8.2'

@@ -60,3 +60,8 @@ export const hashString = function (str, seed = 0) {
 }
 
 export const uniqueSlash = (path: string) => path.replace(/(https?:\/)|(\/)+/g, '$1$2')
+
+export function differenceBy(arr1: Array<any>, arr2: Array<any>, key: string) {
+  const set2 = new Set(arr2.map(item => item[key]))
+  return arr1.filter(item => !set2.has(item[key]))
+}

@@ -46,4 +46,8 @@ export enum ErrorEnum {
   OSS_FILE_OR_DIR_EXIST = '1401:当前创建的文件或目录已存在',
   OSS_NO_OPERATION_REQUIRED = '1402:无需操作',
   OSS_EXCEE_MAXIMUM_QUANTITY = '1403:已超出支持的最大处理数量',
+
+  // ARTICLE相关
+  ARTICLE_EXISTS = '1501:当前创建的文件或目录已存在',
+  INVALID_ARTICLE_TITLE = '1502:文章标题不能包含特殊字符',
 }

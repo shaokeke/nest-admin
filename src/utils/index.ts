@@ -1,3 +1,4 @@
+export * from './cmd.util'
 export * from './captcha.util'
 export * from './crypto.util'
 export * from './date.util'

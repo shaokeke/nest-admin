@@ -95,3 +95,58 @@ export async function deleteFile(name: string) {
     // console.log(error);
   })
 }
+
+// 检查文件是否存在于给定路径
+export async function fileExists(filePath: string): Promise<boolean> {
+  let exist = true
+  try {
+    await fs.promises.access(filePath, fs.constants.F_OK)
+  }
+  catch (error) {
+    // 没有该文件夹就创建
+    exist = false
+  }
+  return exist
+
+  // return new Promise((resolve, reject) => {
+  //   fs.access(filePath, fs.constants.F_OK, (err) => {
+  //     if (err) {
+  //       console.error('文件不存在')
+  //       resolve(false)
+  //     }
+  //     else {
+  //       // 文件存在
+  //       console.log('文件存在')
+  //       resolve(true)
+  //     }
+  //   })
+  // })
+}
+
+export async function saveStringToFile(path: string, content: string) {
+  fs.promises.writeFile(path, content, 'utf8')
+}
+
+export async function readFileToString(path: string) {
+  return fs.promises.readFile(path, 'utf8')
+}
+/**
+ * 递归获取指定文件夹下的所有.txt文件
+ * @param folderPath 文件夹路径
+ * @param fileExt 文件扩展名
+ * @returns 文件路径数组
+ */
+export function getFilesRecursively(folderPath: string, fileExt: string): string[] {
+  let files: string[] = []
+  const dirEntries = fs.readdirSync(folderPath, { withFileTypes: true })
+
+  dirEntries.forEach((dirEntry) => {
+    const fullPath = path.join(folderPath, dirEntry.name)
+    if (dirEntry.isDirectory())
+      files = [...files, ...getFilesRecursively(fullPath, fileExt)] // 递归子目录
+    else if (path.extname(fullPath) === fileExt)
+      files.push(fullPath) // 添加匹配扩展名的文件路径
+  })
+
+  return files
+}
