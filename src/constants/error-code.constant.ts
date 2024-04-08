@@ -50,4 +50,5 @@ export enum ErrorEnum {
   // ARTICLE相关
   ARTICLE_EXISTS = '1501:当前创建的文件或目录已存在',
   INVALID_ARTICLE_TITLE = '1502:文章标题不能包含特殊字符',
+  ARTICLE_NOT_FOUND = '1503:文章不存在',
 }

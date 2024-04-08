@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Post, Query } from '@nestjs/common'
 
 import { ApiOperation, ApiTags } from '@nestjs/swagger'
 
 import { ApiResult } from '~/common/decorators/api-result.decorator'
+import { IdParam } from '~/common/decorators/id-param.decorator'
 import { ApiSecurityAuth } from '~/common/decorators/swagger.decorator'
 import { Pagination } from '~/helper/paginate/pagination'
 import { ArticleEntity } from '~/modules/article/entities/article.entity'
@@ -51,9 +52,11 @@ export class ArticleController {
     return this.articleService.findOne(+id)
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateArticleDto: UpdateArticleDto) {
-    return this.articleService.update(+id, updateArticleDto)
+  @Post(':id')
+  @ApiOperation({ summary: '更新文章' })
+  @Perm(permissions.UPDATE)
+  async update(@IdParam() id: number, @Body() updateArticleDto: UpdateArticleDto): Promise<void> {
+    await this.articleService.update(id, updateArticleDto)
   }
 
   @Delete(':id')

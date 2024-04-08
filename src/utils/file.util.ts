@@ -65,6 +65,15 @@ export function fileRename(fileName: string) {
   return `${name}-${time}${extName}`
 }
 
+export async function filePathRename(oldPath: string, newPath: string) {
+  try {
+    await fs.promises.rename(oldPath, newPath)
+  }
+  catch (error) {
+    throw new Error(error)
+  }
+}
+
 export function getFilePath(name: string, currentDate: string, type: string) {
   return `/upload/${currentDate}/${type}/${name}`
 }

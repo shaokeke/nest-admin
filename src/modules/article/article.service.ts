@@ -22,6 +22,7 @@ import { ArticleEntity } from '~/modules/article/entities/article.entity'
 import {
   differenceBy,
   fileExists,
+  filePathRename,
   formatToDateTime,
   getFilesRecursively,
   readFileToString,
@@ -65,6 +66,7 @@ export class ArticleService implements OnModuleInit {
         })
         .on('change', async (path) => {
           console.log(`File ${path} was changed`)
+          // 更新这个文件的信息
           await this.writeArticleFileInfoToDataBase(pathToWatch)
         })
         .on('unlink', path => console.log(`File ${path} was removed`))
@@ -132,6 +134,39 @@ export class ArticleService implements OnModuleInit {
     console.log('CreateArticleDto', createArticleDto.content)
   }
 
+  async saveFile(newTitle: string, content: string, oldTitle: string): Promise<void> {
+    if (this.isValidFileName(newTitle))
+      throw new BusinessException(ErrorEnum.INVALID_ARTICLE_TITLE)
+    if (this.isValidFileName(oldTitle))
+      throw new BusinessException(ErrorEnum.INVALID_ARTICLE_TITLE)
+    const articlePath = await this.paramConfigService.findValueByKey(
+      ARTICLE_PATH,
+    )
+    const newMdPath = path.join(articlePath, `${newTitle}.md`)
+    const oldMdPath = path.join(articlePath, `${oldTitle}.md`)
+    console.log('fileExists', await fileExists(newMdPath), await fileExists(oldMdPath))
+    try {
+      // 源文件存在，则改名然后写入
+      if (await fileExists(oldMdPath)) {
+        if (oldMdPath === newMdPath) {
+          // 直接写入
+          await saveStringToFile(oldMdPath, content)
+        }
+        else {
+          // 改名后写入
+          await filePathRename(oldMdPath, newMdPath)
+          await saveStringToFile(newMdPath, content)
+        }
+      }
+      else {
+        throw new BusinessException(ErrorEnum.ARTICLE_NOT_FOUND)
+      }
+    }
+    catch (error) {
+      throw new Error(error)
+    }
+  }
+
   findAll() {
     return `This action returns all article`
   }
@@ -140,8 +175,14 @@ export class ArticleService implements OnModuleInit {
     return `This action returns a #${id} article`
   }
 
-  update(id: number, updateArticleDto: UpdateArticleDto) {
-    return `This action updates a #${id} article`
+  async update(id: number, updateArticleDto: UpdateArticleDto): Promise<void> {
+    // 1.找出原来的oldTitle
+    const oldArticle = await this.articleRepository.findOneBy({ id })
+    if (!oldArticle)
+      throw new BusinessException(ErrorEnum.ARTICLE_NOT_FOUND)
+
+    await this.saveFile(updateArticleDto.title, updateArticleDto.content, oldArticle.title)
+    // await this.articleRepository.update(id, updateArticleDto)
   }
 
   remove(id: number) {

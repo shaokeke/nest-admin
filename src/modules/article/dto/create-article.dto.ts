@@ -14,6 +14,6 @@ export class CreateArticleDto {
   @ApiProperty({ description: '内容' })
   @IsString()
   @MinLength(1)
-  @MaxLength(4096)
+  @MaxLength(16384)
   content: string
 }
