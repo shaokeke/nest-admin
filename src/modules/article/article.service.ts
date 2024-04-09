@@ -20,6 +20,7 @@ import { Pagination } from '~/helper/paginate/pagination'
 import { ArticleEntity } from '~/modules/article/entities/article.entity'
 
 import {
+  delFile,
   differenceBy,
   fileExists,
   filePathRename,
@@ -112,8 +113,7 @@ export class ArticleService implements OnModuleInit {
       })
     }
     if (field) {
-      console.log('order', order)
-      console.log('toUnderline(field)', toUnderline(field))
+      // console.log('toUnderline(field)', toUnderline(field))
       queryBuilder.orderBy(toUnderline(field), order || 'DESC')
     }
 
@@ -170,12 +170,8 @@ export class ArticleService implements OnModuleInit {
           await saveStringToFile(oldMdPath, content)
         }
         else {
-          // 改名后写入1
-          // await this.watcher.close()
-          console.log('移除监听文件夹')
           await filePathRename(oldMdPath, newMdPath)
           await saveStringToFile(newMdPath, content)
-          // this.runWatchDirectory()
         }
       }
       else {
@@ -206,8 +202,12 @@ export class ArticleService implements OnModuleInit {
     await this.saveFile(updateArticleDto.title, updateArticleDto.content, oldArticle.title)
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} article`
+  async delete(id: number): Promise<void> {
+    const article = await this.articleRepository.findOneBy({ id })
+    // 1.先删除数据
+    await this.articleRepository.softDelete(id)
+    // 2.删除文件
+    await delFile(this.articlePath, `${article.title}.md`)
   }
 
   async updateArticleBatch(articleList: Array<ArticleEntity>): Promise<void> {
@@ -218,7 +218,7 @@ export class ArticleService implements OnModuleInit {
     const toDelete: Array<ArticleEntity> = differenceBy(articlesOld, articleList, 'title')
 
     if (toDelete.length > 0)
-      await this.articleRepository.softDelete(toDelete.map(item => item.id))
+      await this.articleRepository.softRemove(toDelete)
 
     if (toInsert.length > 0)
       await this.articleRepository.insert(toInsert)

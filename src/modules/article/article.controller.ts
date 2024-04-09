@@ -42,10 +42,6 @@ export class ArticleController {
   async list(@Query() dto: ArticelQueryDto): Promise<Pagination<ArticleEntity>> {
     return this.articleService.page(dto)
   }
-  // @Get()
-  // findAll() {
-  //   return this.articleService.findAll()
-  // }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
@@ -60,7 +56,9 @@ export class ArticleController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.articleService.remove(+id)
+  @ApiOperation({ summary: '删除文章' })
+  @Perm(permissions.DELETE)
+  async delete(@IdParam() id: number) {
+    return this.articleService.delete(id)
   }
 }

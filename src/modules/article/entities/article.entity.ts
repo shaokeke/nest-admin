@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { Column, Entity } from 'typeorm'
+import { Column, DeleteDateColumn, Entity } from 'typeorm'
 
 import { CommonEntity } from '~/common/entity/common.entity'
 
@@ -20,4 +20,8 @@ export class ArticleEntity extends CommonEntity {
   @Column({ type: 'int', default: 0, nullable: true })
   @ApiProperty({ description: '访问数量' })
   visitCount: number
+
+  // 这里使用了DeleteDateColumn，表示这个字段用于软删除
+  @DeleteDateColumn()
+  deletedAt: Date
 }

@@ -116,20 +116,6 @@ export async function fileExists(filePath: string): Promise<boolean> {
     exist = false
   }
   return exist
-
-  // return new Promise((resolve, reject) => {
-  //   fs.access(filePath, fs.constants.F_OK, (err) => {
-  //     if (err) {
-  //       console.error('文件不存在')
-  //       resolve(false)
-  //     }
-  //     else {
-  //       // 文件存在
-  //       console.log('文件存在')
-  //       resolve(true)
-  //     }
-  //   })
-  // })
 }
 
 export async function saveStringToFile(path: string, content: string) {
@@ -158,4 +144,11 @@ export function getFilesRecursively(folderPath: string, fileExt: string): string
   })
 
   return files
+}
+
+export async function delFile(filePath: string, fileName: string) {
+  fs.unlink(path.join(filePath, fileName), () => {
+    // console.log(error);
+  })
+  // fs.promises.unlink(path.join(filePath, fileName))
 }
