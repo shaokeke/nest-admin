@@ -194,7 +194,7 @@ export class ArticleService implements OnModuleInit {
   async update(id: number, updateArticleDto: UpdateArticleDto): Promise<void> {
     // 1.找出原来的oldTitle
     const oldArticle = await this.articleRepository.findOneBy({ id })
-    console.log('oldArticle', oldArticle)
+    // console.log('oldArticle', oldArticle)
     if (!oldArticle)
       throw new BusinessException(ErrorEnum.ARTICLE_NOT_FOUND)
 
