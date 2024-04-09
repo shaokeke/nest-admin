@@ -204,10 +204,15 @@ export class ArticleService implements OnModuleInit {
 
   async delete(id: number): Promise<void> {
     const article = await this.articleRepository.findOneBy({ id })
-    // 1.先删除数据
-    await this.articleRepository.softDelete(id)
-    // 2.删除文件
-    await delFile(this.articlePath, `${article.title}.md`)
+    if (article) {
+      // 1.先删除数据
+      await this.articleRepository.softDelete(id)
+      // 2.删除文件
+      delFile(this.articlePath, `${article.title}.md`)
+    }
+    else {
+      throw new BusinessException(ErrorEnum.ARTICLE_NOT_FOUND)
+    }
   }
 
   async updateArticleBatch(articleList: Array<ArticleEntity>): Promise<void> {
