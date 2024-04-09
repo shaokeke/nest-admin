@@ -61,7 +61,13 @@ export const hashString = function (str, seed = 0) {
 
 export const uniqueSlash = (path: string) => path.replace(/(https?:\/)|(\/)+/g, '$1$2')
 
+// 取差集
 export function differenceBy(arr1: Array<any>, arr2: Array<any>, key: string) {
   const set2 = new Set(arr2.map(item => item[key]))
   return arr1.filter(item => !set2.has(item[key]))
+}
+
+// 驼峰转下划线
+export function toUnderline(str: string) {
+  return str.replace(/([A-Z])/g, '_$1').toLowerCase()
 }

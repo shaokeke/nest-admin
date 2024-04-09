@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common'
 
 import { InjectRepository } from '@nestjs/typeorm'
-import { watch } from 'chokidar'
+import { FSWatcher, watch } from 'chokidar'
 import { Repository } from 'typeorm'
 
 import { BusinessException } from '~/common/exceptions/biz.exception'
@@ -27,6 +27,7 @@ import {
   getFilesRecursively,
   readFileToString,
   saveStringToFile,
+  toUnderline,
 } from '~/utils'
 
 import { ParamConfigService } from '../system/param-config/param-config.service'
@@ -37,6 +38,8 @@ import { UpdateArticleDto } from './dto/update-article.dto'
 
 @Injectable()
 export class ArticleService implements OnModuleInit {
+  watcher: FSWatcher
+  articlePath: string
   async onModuleInit() {
     // 在这里编写你的启动脚本
     Logger.debug('Module has been initialized. Running script...')
@@ -54,24 +57,8 @@ export class ArticleService implements OnModuleInit {
       //   // console.log('event', event, 'path:', path)
       //   Logger.debug('event', event, 'path:', path)
       // })
-
-      const watcher = watch(pathToWatch, {
-        persistent: true,
-      // ignoreInitial: true
-      })
-      watcher
-        .on('add', async (path) => {
-          console.log(`File ${path} was added`)
-          await this.writeArticleFileInfoToDataBase(pathToWatch)
-        })
-        .on('change', async (path) => {
-          console.log(`File ${path} was changed`)
-          // 更新这个文件的信息
-          await this.writeArticleFileInfoToDataBase(pathToWatch)
-        })
-        .on('unlink', path => console.log(`File ${path} was removed`))
-        .on('error', error => console.error(`Watcher error: ${error}`))
-      // .on('ready', () => console.log('Initial scan complete. Ready for changes.'))
+      this.articlePath = articlePath
+      this.runWatchDirectory()
     }
     else {
       Logger.error('articlePath没有配置')
@@ -84,6 +71,29 @@ export class ArticleService implements OnModuleInit {
     private readonly paramConfigService: ParamConfigService,
   ) {}
 
+  async runWatchDirectory() {
+    Logger.log(this.articlePath, 'runWatchDirectory')
+    await this.writeArticleFileInfoToDataBase(this.articlePath)
+    this.watcher = watch(this.articlePath, {
+      persistent: true,
+      ignoreInitial: true,
+      awaitWriteFinish: true,
+    })
+    this.watcher
+      .on('add', async (path) => {
+        Logger.log(`File ${path} was added`)
+        await this.writeArticleFileInfoToDataBase(this.articlePath)
+      })
+      .on('change', async (path) => {
+        console.log(`File ${path} was changed`)
+        // 更新这个文件的信息
+        await this.writeArticleFileInfoToDataBase(this.articlePath)
+      })
+      .on('unlink', path => console.log(`File ${path} was removed`))
+      .on('error', error => console.error(`Watcher error: ${error}`))
+    // .on('ready', () => console.log('Initial scan complete. Ready for changes.'))
+  }
+
   /**
    * 罗列所有文章
    */
@@ -91,13 +101,20 @@ export class ArticleService implements OnModuleInit {
     page,
     pageSize,
     title,
+    field = 'id',
+    order,
   }: ArticelQueryDto): Promise<Pagination<ArticleEntity>> {
-    const queryBuilder = this.articleRepository.createQueryBuilder('article')
+    const queryBuilder = this.articleRepository.createQueryBuilder('a') // 指定article別名为a
 
     if (title) {
-      queryBuilder.where('article.title LIKE :title', {
+      queryBuilder.where('a.title LIKE :title', {
         title: `%${title}%`,
       })
+    }
+    if (field) {
+      console.log('order', order)
+      console.log('toUnderline(field)', toUnderline(field))
+      queryBuilder.orderBy(toUnderline(field), order || 'DESC')
     }
 
     return paginate(queryBuilder, { page, pageSize })
@@ -153,9 +170,12 @@ export class ArticleService implements OnModuleInit {
           await saveStringToFile(oldMdPath, content)
         }
         else {
-          // 改名后写入
+          // 改名后写入1
+          // await this.watcher.close()
+          console.log('移除监听文件夹')
           await filePathRename(oldMdPath, newMdPath)
           await saveStringToFile(newMdPath, content)
+          // this.runWatchDirectory()
         }
       }
       else {
@@ -178,11 +198,12 @@ export class ArticleService implements OnModuleInit {
   async update(id: number, updateArticleDto: UpdateArticleDto): Promise<void> {
     // 1.找出原来的oldTitle
     const oldArticle = await this.articleRepository.findOneBy({ id })
+    console.log('oldArticle', oldArticle)
     if (!oldArticle)
       throw new BusinessException(ErrorEnum.ARTICLE_NOT_FOUND)
 
+    await this.articleRepository.update(id, updateArticleDto)
     await this.saveFile(updateArticleDto.title, updateArticleDto.content, oldArticle.title)
-    // await this.articleRepository.update(id, updateArticleDto)
   }
 
   remove(id: number) {
@@ -197,7 +218,7 @@ export class ArticleService implements OnModuleInit {
     const toDelete: Array<ArticleEntity> = differenceBy(articlesOld, articleList, 'title')
 
     if (toDelete.length > 0)
-      await this.articleRepository.delete(toDelete.map(item => item.id))
+      await this.articleRepository.softDelete(toDelete.map(item => item.id))
 
     if (toInsert.length > 0)
       await this.articleRepository.insert(toInsert)
@@ -215,7 +236,7 @@ export class ArticleService implements OnModuleInit {
   private async writeArticleFileInfoToDataBase(articlePath: string): Promise<void> {
     const mdFiles: string[] = getFilesRecursively(articlePath, '.md')
 
-    console.log('mdFiles', mdFiles)
+    Logger.log(mdFiles, `mdFiles:`)
     const articleList: Array<ArticleEntity> = []
     for (const mdFile of mdFiles) {
       let createTime = null
