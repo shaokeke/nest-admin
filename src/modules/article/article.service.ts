@@ -1,4 +1,6 @@
+import * as os from 'node:os'
 import path from 'node:path'
+import * as util from 'node:util'
 
 import {
   Injectable,
@@ -13,7 +15,7 @@ import { Repository } from 'typeorm'
 
 import { BusinessException } from '~/common/exceptions/biz.exception'
 import { ErrorEnum } from '~/constants/error-code.constant'
-import { ARTICLE_PATH } from '~/constants/system.constant'
+import { ARTICLE_PATH, HEXO_PATH, PUBLIC_PATH } from '~/constants/system.constant'
 
 import { paginate } from '~/helper/paginate'
 import { Pagination } from '~/helper/paginate/pagination'
@@ -22,6 +24,7 @@ import { ArticleEntity } from '~/modules/article/entities/article.entity'
 import {
   delFile,
   differenceBy,
+  execute,
   fileExists,
   filePathRename,
   formatToDateTime,
@@ -39,11 +42,12 @@ import { UpdateArticleDto } from './dto/update-article.dto'
 
 @Injectable()
 export class ArticleService implements OnModuleInit {
+  private logger = new Logger(ArticleService.name)
   watcher: FSWatcher
   articlePath: string
   async onModuleInit() {
     // 在这里编写你的启动脚本
-    Logger.debug('Module has been initialized. Running script...')
+    this.logger.debug('Module has been initialized. Running script...')
     // 执行你的脚本代码
 
     const articlePath = await this.paramConfigService.findValueByKey(
@@ -56,13 +60,13 @@ export class ArticleService implements OnModuleInit {
       // 在主线程中启动chokidar监听
       // watch(pathToWatch).on('all', (event, path) => {
       //   // console.log('event', event, 'path:', path)
-      //   Logger.debug('event', event, 'path:', path)
+      //   this.logger.debug('event', event, 'path:', path)
       // })
       this.articlePath = articlePath
       this.runWatchDirectory()
     }
     else {
-      Logger.error('articlePath没有配置')
+      this.logger.error('articlePath没有配置')
     }
   }
 
@@ -73,7 +77,7 @@ export class ArticleService implements OnModuleInit {
   ) {}
 
   async runWatchDirectory() {
-    Logger.log(this.articlePath, 'runWatchDirectory')
+    this.logger.log(this.articlePath, 'runWatchDirectory')
     await this.writeArticleFileInfoToDataBase(this.articlePath)
     this.watcher = watch(this.articlePath, {
       persistent: true,
@@ -82,7 +86,7 @@ export class ArticleService implements OnModuleInit {
     })
     this.watcher
       .on('add', async (path) => {
-        Logger.log(`File ${path} was added`)
+        this.logger.log(`File ${path} was added`)
         await this.writeArticleFileInfoToDataBase(this.articlePath)
       })
       .on('change', async (path) => {
@@ -118,6 +122,32 @@ export class ArticleService implements OnModuleInit {
     }
 
     return paginate(queryBuilder, { page, pageSize })
+  }
+
+  async generate() {
+    try {
+      const hexoPath: string = await this.paramConfigService.findValueByKey(
+        HEXO_PATH,
+      )
+      const publicPath: string = await this.paramConfigService.findValueByKey(
+        PUBLIC_PATH,
+      )
+      const windowsCommands = ['cmd.exe', util.format('/c cd /d %s && hexo g', hexoPath)]
+
+      const platform = os.platform()
+      const linuxCommands = ['/bin/bash', util.format('-c cd %s && hexo g', hexoPath)]
+
+      const commands: string[] = platform.includes('win32') ? windowsCommands : linuxCommands
+
+      this.logger.log(`commands:${commands.join(' ')}`)
+      execute(commands.join(' '))
+    }
+
+    // 判断os
+
+    catch (error) {
+      throw new Error(error)
+    }
   }
 
   async create(createArticleDto: CreateArticleDto) {
@@ -241,7 +271,7 @@ export class ArticleService implements OnModuleInit {
   private async writeArticleFileInfoToDataBase(articlePath: string): Promise<void> {
     const mdFiles: string[] = getFilesRecursively(articlePath, '.md')
 
-    Logger.log(mdFiles, `mdFiles:`)
+    this.logger.log(mdFiles, `mdFiles:`)
     const articleList: Array<ArticleEntity> = []
     for (const mdFile of mdFiles) {
       let createTime = null

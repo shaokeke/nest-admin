@@ -20,6 +20,7 @@ export const permissions = definePermission('article:manage', {
   READ: 'read',
   UPDATE: 'update',
   DELETE: 'delete',
+  GENERATE: 'generate',
 } as const)
 
 @ApiTags('Blog - 文章管理模块')
@@ -60,5 +61,12 @@ export class ArticleController {
   @Perm(permissions.DELETE)
   async delete(@IdParam() id: number) {
     return this.articleService.delete(id)
+  }
+
+  @Get('generate')
+  @ApiOperation({ summary: '生成' })
+  @Perm(permissions.GENERATE)
+  generate() {
+    return this.articleService.generate()
   }
 }
