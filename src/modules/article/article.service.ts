@@ -24,7 +24,7 @@ import { ArticleEntity } from '~/modules/article/entities/article.entity'
 import {
   delFile,
   differenceBy,
-  execute,
+  executeSpawn,
   fileExists,
   filePathRename,
   formatToDateTime,
@@ -55,7 +55,7 @@ export class ArticleService implements OnModuleInit {
     )
     console.log('articlePath', articlePath)
     if (articlePath) {
-    // 监听的文件夹路径
+      // 监听的文件夹路径
       const pathToWatch = 'E:/project/vue/vue3-antdv-admin/docs'
       // 在主线程中启动chokidar监听
       // watch(pathToWatch).on('all', (event, path) => {
@@ -74,7 +74,7 @@ export class ArticleService implements OnModuleInit {
     @InjectRepository(ArticleEntity)
     private articleRepository: Repository<ArticleEntity>,
     private readonly paramConfigService: ParamConfigService,
-  ) {}
+  ) { }
 
   async runWatchDirectory() {
     this.logger.log(this.articlePath, 'runWatchDirectory')
@@ -132,15 +132,17 @@ export class ArticleService implements OnModuleInit {
       const publicPath: string = await this.paramConfigService.findValueByKey(
         PUBLIC_PATH,
       )
-      const windowsCommands = ['cmd.exe', util.format('/c cd /d %s && hexo g', hexoPath)]
-
+      const windowsCommands = { cmd: 'cmd.exe', args: util.format('/c cd /d %s && hexo g', hexoPath).split(' ') }
+      // const windowsCommands = { cmd: 'cmd.exe', args: util.format('ping baidu.com').split(' ') }
       const platform = os.platform()
-      const linuxCommands = ['/bin/bash', util.format('-c cd %s && hexo g', hexoPath)]
+      const linuxCommands = { cmd: '/bin/bash', args: util.format('-c cd %s && hexo g', hexoPath).split(' ') }
 
-      const commands: string[] = platform.includes('win32') ? windowsCommands : linuxCommands
+      const commands = platform.includes('win32') ? windowsCommands : linuxCommands
 
-      this.logger.log(`commands:${commands.join(' ')}`)
-      execute(commands.join(' '))
+      console.log('commands', commands)
+
+      const result = executeSpawn(commands.cmd, commands.args)
+      console.log('result', result)
     }
 
     // 判断os
@@ -283,7 +285,7 @@ export class ArticleService implements OnModuleInit {
 
         if (s1.includes('\n'))
           dateString = s1.substring(0, s1.indexOf('\n')).trim()
-          // 如果文件只有一行的情况
+        // 如果文件只有一行的情况
         else
           dateString = s1
 
