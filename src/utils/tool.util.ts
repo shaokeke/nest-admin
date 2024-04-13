@@ -71,3 +71,9 @@ export function differenceBy(arr1: Array<any>, arr2: Array<any>, key: string) {
 export function toUnderline(str: string) {
   return str.replace(/([A-Z])/g, '_$1').toLowerCase()
 }
+
+export function deleteCharAt(str: string, index: number) {
+  if (index >= 0 && index < str.length)
+    return str.slice(0, index) + str.slice(index + 1)
+  return str // 如果索引超出字符串范围，则返回原字符串
+}

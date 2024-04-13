@@ -24,6 +24,7 @@ import {
   Cmd,
   EXECUT_OPTIONS,
   delFile,
+  deleteCharAt,
   differenceBy,
   fileExists,
   filePathRename,
@@ -147,8 +148,12 @@ export class ArticleService implements OnModuleInit {
       // executeSpawn(commands.cmd, commands.args)
 
       const cmd = new Cmd()
-      const result = await cmd.run(commands.cmd, commands.args, EXECUT_OPTIONS)
-      console.log('result', result)
+      const output = await cmd.run(commands.cmd, commands.args, EXECUT_OPTIONS)
+      console.log('output', output)
+      if (output.lastIndexOf('\n') !== -1)
+        deleteCharAt(output, output.lastIndexOf('\n'))
+
+      this.logger.log(`生成成功信息:\n${output.toString()}`)
     }
 
     catch (error) {
