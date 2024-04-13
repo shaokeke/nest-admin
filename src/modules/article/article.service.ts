@@ -6,7 +6,6 @@ import {
   Injectable,
   Logger,
   OnModuleInit,
-
 } from '@nestjs/common'
 
 import { InjectRepository } from '@nestjs/typeorm'
@@ -141,8 +140,8 @@ export class ArticleService implements OnModuleInit {
 
       console.log('commands', commands)
 
-      const result = executeSpawn(commands.cmd, commands.args)
-      console.log('result', result)
+      // 异步去执行
+      executeSpawn(commands.cmd, commands.args)
     }
 
     // 判断os

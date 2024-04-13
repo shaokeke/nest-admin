@@ -1,5 +1,4 @@
-import { ChildProcessWithoutNullStreams, exec } from 'node:child_process'
-import { type SpawnSyncReturns, spawn, spawnSync } from 'node:child_process'
+import { ChildProcess, type SpawnSyncReturns, exec, spawn, spawnSync } from 'node:child_process'
 
 import { Logger } from '@nestjs/common'
 
@@ -34,17 +33,35 @@ export function executeSpawnSync(
 
 // 配置项
 const EXECUTION_OPTIONS = {
+  // stdio: [0,1,2], // stdin stdout stderr
   windowsHide: true, // windows命令行不显示
   detached: true, // 让子进程独立于父进程运行
 }
 
-let childProcess: ChildProcessWithoutNullStreams
+let childProcess: ChildProcess
 // 启动服务端程序
 export function executeSpawn(cmd: string, args: string[] = []) {
   childProcess = spawn(cmd, args, EXECUTION_OPTIONS)
-  console.log('childProcess', childProcess)
+  console.log('childProcess', childProcess.pid)
+  hanldeSpawn()
 }
 
+function hanldeSpawn() {
+  childProcess!.stdout.on('data', (data) => {
+    // Handle data...
+    console.log('childProcess data', String(data))
+  })
+
+  // childProcess!.stderr.on("data", (err) => {
+  //   // Handle error...
+  //   console.log("childProcess err", String(err))
+  // });
+
+  childProcess.on('exit', (code) => {
+    // Handle exit
+    console.log('childProcess exit', code)
+  })
+}
 // 关闭服务端程序
 export function stopSpawn() {
   console.log(childProcess.pid)
