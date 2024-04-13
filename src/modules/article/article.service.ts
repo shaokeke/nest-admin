@@ -21,9 +21,10 @@ import { Pagination } from '~/helper/paginate/pagination'
 import { ArticleEntity } from '~/modules/article/entities/article.entity'
 
 import {
+  Cmd,
+  EXECUT_OPTIONS,
   delFile,
   differenceBy,
-  executeSpawn,
   fileExists,
   filePathRename,
   formatToDateTime,
@@ -133,6 +134,8 @@ export class ArticleService implements OnModuleInit {
       )
       const windowsCommands = { cmd: 'cmd.exe', args: util.format('/c cd /d %s && hexo g', hexoPath).split(' ') }
       // const windowsCommands = { cmd: 'cmd.exe', args: util.format('ping baidu.com').split(' ') }
+
+      // 判断os
       const platform = os.platform()
       const linuxCommands = { cmd: '/bin/bash', args: util.format('-c cd %s && hexo g', hexoPath).split(' ') }
 
@@ -141,10 +144,12 @@ export class ArticleService implements OnModuleInit {
       console.log('commands', commands)
 
       // 异步去执行
-      executeSpawn(commands.cmd, commands.args)
-    }
+      // executeSpawn(commands.cmd, commands.args)
 
-    // 判断os
+      const cmd = new Cmd()
+      const result = await cmd.run(commands.cmd, commands.args, EXECUT_OPTIONS)
+      console.log('result', result)
+    }
 
     catch (error) {
       throw new Error(error)
