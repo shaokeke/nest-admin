@@ -91,9 +91,10 @@ interface CmdOption extends SpawnOptions {
   logPrefix?: string
 }
 export const EXECUT_OPTIONS = {
-  silent: false,
+  silent: true, // 忽略一些错误
+  logPrefix: '',
   windowsHide: true, // windows命令行不显示
-  detached: true, // 让子进程独立于父进程运行
+  detached: false, // 让子进程独立于父进程运行
 }
 export class Cmd {
   private text: string = ''
