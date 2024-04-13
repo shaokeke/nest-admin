@@ -118,6 +118,20 @@ export async function fileExists(filePath: string): Promise<boolean> {
   return exist
 }
 
+// 检查文件是否存在于给定路径
+export async function dirExists(filePath: string): Promise<boolean> {
+  let exist = true
+  try {
+    // 判断是否有该文件夹
+    await fs.promises.stat(filePath)
+  }
+  catch (error) {
+    // 没有该文件夹就创建
+    exist = false
+  }
+  return exist
+}
+
 export async function saveStringToFile(path: string, content: string) {
   fs.promises.writeFile(path, content, 'utf8')
 }
@@ -151,4 +165,29 @@ export async function delFile(filePath: string, fileName: string) {
     // console.log(error);
   })
   // fs.promises.unlink(path.join(filePath, fileName))
+}
+
+/**
+ * Allow to copy a directory from source to target
+ * @param source - the source directory
+ * @param target - the target directory
+ */
+export function copyDirectory(source: string, target: string): void {
+  if (!fs.existsSync(target))
+    fs.mkdirSync(target, { recursive: true })
+
+  if (!fs.existsSync(source))
+    return
+
+  const files = fs.readdirSync(source)
+
+  files.forEach((file: string) => {
+    const sourcePath = path.join(source, file)
+    const targetPath = path.join(target, file)
+
+    if (fs.lstatSync(sourcePath).isDirectory())
+      copyDirectory(sourcePath, targetPath)
+    else
+      fs.copyFileSync(sourcePath, targetPath)
+  })
 }

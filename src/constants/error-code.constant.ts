@@ -51,4 +51,5 @@ export enum ErrorEnum {
   ARTICLE_EXISTS = '1501:当前创建的文件或目录已存在',
   INVALID_ARTICLE_TITLE = '1502:文章标题不能包含特殊字符',
   ARTICLE_NOT_FOUND = '1503:文章不存在',
+  HEXO_PUBLIC_NOT_FOUND = '1504:hexoPath/public不存在',
 }

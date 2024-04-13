@@ -23,9 +23,11 @@ import { ArticleEntity } from '~/modules/article/entities/article.entity'
 import {
   Cmd,
   EXECUT_OPTIONS,
+  copyDirectory,
   delFile,
   deleteCharAt,
   differenceBy,
+  dirExists,
   fileExists,
   filePathRename,
   formatToDateTime,
@@ -142,18 +144,17 @@ export class ArticleService implements OnModuleInit {
 
       const commands = platform.includes('win32') ? windowsCommands : linuxCommands
 
-      console.log('commands', commands)
-
-      // 异步去执行
-      // executeSpawn(commands.cmd, commands.args)
-
       const cmd = new Cmd()
       const output = await cmd.run(commands.cmd, commands.args, EXECUT_OPTIONS)
-      console.log('output', output)
       if (output.lastIndexOf('\n') !== -1)
         deleteCharAt(output, output.lastIndexOf('\n'))
 
       this.logger.log(`生成成功信息:\n${output.toString()}`)
+      const srcDir = path.join(hexoPath, 'public')
+      if (!dirExists(srcDir))
+        throw new BusinessException(ErrorEnum.HEXO_PUBLIC_NOT_FOUND)
+      else
+        copyDirectory(srcDir, publicPath)
     }
 
     catch (error) {
