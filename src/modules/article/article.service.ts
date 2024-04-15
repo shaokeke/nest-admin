@@ -1,4 +1,3 @@
-import * as os from 'node:os'
 import path from 'node:path'
 
 import {
@@ -135,12 +134,7 @@ export class ArticleService implements OnModuleInit {
         PUBLIC_PATH,
       )
       // const windowsCommands = { cmd: 'cmd.exe', args: util.format('/c cd /d %s && hexo g', hexoPath).split(' ') }
-      const windowsCommands = { cmd: 'hexo', args: ['g'] }
-      const linuxCommands = { cmd: 'hexo', args: ['g'] }
-      // 判断os,cmd选项不必判断
-      const platform = os.platform()
-      const commands = platform.includes('win32') ? windowsCommands : linuxCommands
-
+      const commands = { cmd: 'hexo', args: ['g'] }
       const cmd = new Cmd()
       const output = await cmd.run(commands.cmd, commands.args, { cwd: hexoPath, ...EXECUT_OPTIONS })
       if (output.lastIndexOf('\n') !== -1)

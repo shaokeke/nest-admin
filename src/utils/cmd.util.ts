@@ -90,11 +90,12 @@ interface CmdOption extends SpawnOptions {
   silent?: boolean
   logPrefix?: string
 }
+const platform = os.platform()
 export const EXECUT_OPTIONS = {
   silent: true, // 忽略一些错误
   logPrefix: '',
   windowsHide: true, // windows命令行不显示
-  detached: false, // 让子进程独立于父进程运行
+  detached: !platform.includes('win32'), // 让子进程独立于父进程运行
   shell: true,
 }
 export class Cmd {
