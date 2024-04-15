@@ -95,6 +95,7 @@ export const EXECUT_OPTIONS = {
   logPrefix: '',
   windowsHide: true, // windows命令行不显示
   detached: false, // 让子进程独立于父进程运行
+  shell: true,
 }
 export class Cmd {
   private text: string = ''
